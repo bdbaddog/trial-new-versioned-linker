@@ -37,6 +37,10 @@ eval_shlib_filenames(env2)
 
 
 env.SharedLibrary('a', 'a.c', SHLIBVERSION='1.2.3')
+env.SharedLibrary('a_soversion', 'a.c', SHLIBVERSION='1.2.3', SOVERSION='3')
+env.SharedLibrary('a_soname', 'a.c', SHLIBVERSION='1.2.3', SONAME='liba_soname.9.so')
+
+env.SharedLibrary('b', 'b.c')
 
 # env.Command('libabc.so', 'a.c', '@echo for TARGET:$TARGET SHLIBVERSION=$SHLIBVERSION SONAME=${SONAME}',
 #             # SOVERSION='1'

@@ -8,7 +8,6 @@ from SCons.Tool.linkCommon import CreateLibSymlinks, EmitLibSymlinks, StringizeL
 from SCons.Tool import ProgramScanner
 
 
-
 def LibSymlinksActionFunction(target, source, env):
     for tgt in target:
         symlinks = getattr(getattr(tgt, 'attributes', None), 'shliblinks', None)
@@ -119,6 +118,13 @@ def _soversion(target, source, env, for_signature):
         return ''
 
 
+def _soname(target, source, env, for_signature):
+    if 'SONAME' in env:
+        return '$SONAME'
+    else:
+        return "$SHLIBPREFIX$_get_shlib_stem$_SOVERSION${SHLIBSUFFIX}"
+
+
 def _get_shlib_stem(target, source, env, for_signature):
     """
     Get the basename for a library (so for libxyz.so, return xyz)
@@ -146,6 +152,7 @@ def generate(env):
 
     env['_get_shlib_stem'] = _get_shlib_stem
     env['_SOVERSION'] = _soversion
+    env['_SONAME'] = _soname
 
     env['SHLIBNAME'] = '${SHLIBPREFIX}$_get_shlib_stem${_SHLIBVERSION}${_SHLIBUFFIX}'
 
@@ -155,10 +162,10 @@ def generate(env):
 
     # This is the sonamed file name
     # If SHLIBVERSION is defined then this will symlink to $SHLIBNAME
-    env['SHLIB_SONAME_SYMLINK'] = '${SHLIBPREFIX}$_get_shlib_stem${_SOVERSION}${SHLIBSUFFIX}'
+    env['SHLIB_SONAME_SYMLINK'] = '$_SONAME'
 
     # Note this is gnu style
-    env['SHLIBSONAMEFLAGS'] = '-Wl,-soname=$SHLIB_SONAME_SYMLINK'
+    env['SHLIBSONAMEFLAGS'] = '-Wl,-soname=$_SONAME'
 
     env['_SHLIBVERSION'] = "${SHLIBVERSION and '.'+SHLIBVERSION or ''}"
 

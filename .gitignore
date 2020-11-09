@@ -128,3 +128,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# SCons specific
+*.1
+.sconsign.*
+
+# C extensions
+*.so

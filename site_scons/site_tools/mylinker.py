@@ -5,9 +5,6 @@ So if SONAME, SOVERSION, etc are set but SHLIBVERSION is not, they will be ignor
 
 import SCons.Action
 from SCons.Tool.linkCommon import CreateLibSymlinks, EmitLibSymlinks, StringizeLibSymlinks, smart_link
-
-# from SCons.Tool.linkCommon import smart_link, shlib_emitter, ldmod_emitter
-
 from SCons.Tool import ProgramScanner
 
 
@@ -41,8 +38,8 @@ LibSymlinksAction = SCons.Action.Action(LibSymlinksActionFunction, LibSymlinksSt
 
 
 def lib_emitter(target, source, env, **kw):
-    Verbose = True
-    if Verbose:
+    verbose = True
+    if verbose:
         print("_lib_emitter: target[0]={!r}".format(target[0].get_path()))
     for tgt in target:
         if SCons.Util.is_String(tgt):
@@ -53,24 +50,34 @@ def lib_emitter(target, source, env, **kw):
 
 
 def shlib_symlink_emitter(target, source, env, **kw):
-    Verbose = True
+    verbose = True
 
-    shlibversion = env.subst('$SHLIBVERSION')
+    if 'variable_prefix' in kw:
+        var_prefix = kw['variable_prefix']
+    else:
+        var_prefix = 'SHLIB'
+
+    do_symlinks = env.subst('$%sNOVERSIONSYMLINKS' % var_prefix)
+    if do_symlinks in ['1', 'True', 'true', True]:
+        return target, source
+
+    shlibversion = env.subst('$%sVERSION' % var_prefix)
     if shlibversion:
-        if Verbose:
-            print("shlib_symlink_emitter: SHLIBVERSION=%s" % shlibversion)
+        if verbose:
+            print("shlib_symlink_emitter: %sVERSION=%s" % (var_prefix, shlibversion))
 
         libnode = target[0]
-        shlib_soname_symlink = env.subst('$SHLIB_SONAME_SYMLINK', target=target, source=source)
-        shlib_noversion_symlink = env.subst('$SHLIB_NOVERSION_SYMLINK', target=target, source=source)
+        shlib_soname_symlink = env.subst('$%s_SONAME_SYMLINK' % var_prefix, target=target, source=source)
+        shlib_noversion_symlink = env.subst('$%s_NOVERSION_SYMLINK' % var_prefix, target=target, source=source)
 
+        print("SONAMESYM:%s  SO_NOVERSION_SYM:%s"%(shlib_soname_symlink, shlib_noversion_symlink))
         symlinks = [(env.File(shlib_soname_symlink), libnode),
                     (env.File(shlib_noversion_symlink), libnode)]
 
-        if Verbose:
+        if verbose:
             print("_lib_emitter: symlinks={!r}".format(
                 ', '.join(["%r->%r" % (k, v) for k, v in StringizeLibSymlinks(symlinks)])
-                ))
+            ))
 
         if symlinks:
             # This does the actual symlinking
@@ -84,35 +91,7 @@ def shlib_symlink_emitter(target, source, env, **kw):
 
 
 def ldmod_symlink_emitter(target, source, env, **kw):
-    Verbose = True
-
-    shlibversion = env.subst('$SHLIBVERSION')
-    if shlibversion:
-        if Verbose:
-            print("shlib_symlink_emitter: SHLIBVERSION=%s" % shlibversion)
-
-        libnode = target[0]
-        shlib_soname_symlink = env.subst('$SHLIB_SONAME_SYMLINK', target=target, source=source)
-        shlib_noversion_symlink = env.subst('$SHLIB_NOVERSION_SYMLINK', target=target, source=source)
-
-        symlinks = [(env.File(shlib_soname_symlink), libnode),
-                    (env.File(shlib_noversion_symlink), libnode)]
-
-        if Verbose:
-            print("_lib_emitter: symlinks={!r}".format(
-                ', '.join(["%r->%r" % (k, v) for k, v in StringizeLibSymlinks(symlinks)])
-                ))
-
-        if symlinks:
-            # This does the actual symlinking
-            EmitLibSymlinks(env, symlinks, target[0])
-
-            # This saves the information so if the versioned shared library is installed
-            # it can faithfully reproduce the correct symlinks
-            target[0].attributes.shliblinks = symlinks
-
-    return target, source
-
+    return shlib_symlink_emitter(target, source, env, variable_prefix='LDMODULE')
 
 
 def createLoadableModuleBuilder(env):
@@ -126,9 +105,8 @@ def createLoadableModuleBuilder(env):
         ld_module = env['BUILDERS']['LoadableModule']
     except KeyError:
         import SCons.Defaults
-        action_list = [SCons.Defaults.SharedCheck,
-                       SCons.Defaults.LdModuleLinkAction,
-                       LibSymlinksAction]
+        action_list = [LoadableModuleLinkAction,
+                       LoadableModuleSymlinksAction]
         ld_module = SCons.Builder.Builder(action=action_list,
                                           emitter="$LDMODULEEMITTER",
                                           prefix="$LDMODULEPREFIX",
@@ -156,7 +134,7 @@ def createSharedLibBuilder(env):
                        LibSymlinksAction]
         shared_lib = SCons.Builder.Builder(action=action_list,
                                            emitter="$SHLIBEMITTER",
-                                           prefix='lib',
+                                           prefix='$SHLIBPREFIX',
                                            suffix='$_SHLIBSUFFIX',
                                            target_scanner=ProgramScanner,
                                            src_suffix='$_SHOBJSUFFIX',
@@ -168,7 +146,7 @@ def createSharedLibBuilder(env):
 
 
 def _soversion(target, source, env, for_signature):
-    "Function to determine what to use for SOVERSION"
+    """Function to determine what to use for SOVERSION"""
 
     if 'SOVERSION' in env:
         return '.$SOVERSION'
@@ -233,8 +211,8 @@ def setup_shared_lib_logic(env):
 
     # Note this is gnu style
     env['SHLIBSONAMEFLAGS'] = '-Wl,-soname=$_SONAME'
-
     env['_SHLIBVERSION'] = "${SHLIBVERSION and '.'+SHLIBVERSION or ''}"
+
 
     env['SHLIBEMITTER'] = [lib_emitter, shlib_symlink_emitter]
 
@@ -250,6 +228,10 @@ def setup_shared_lib_logic(env):
     env['SHLINKCOM'] = '$SHLINK -o $TARGET $SHLINKFLAGS $__SHLIBVERSIONFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
     env['SHLINKCOMSTR'] = '$SHLINKCOM'
     env['SHLINK'] = '$LINK'
+
+
+LoadableModuleLinkAction = SCons.Action.Action("$LDMODULELINKCOM", "$LDMODULELINKCOMSTR")
+LoadableModuleSymlinksAction = SCons.Action.Action(LibSymlinksActionFunction, LibSymlinksStrFun)
 
 
 def _get_ldmodule_stem(target, source, env, for_signature):
@@ -274,6 +256,26 @@ def _get_ldmodule_stem(target, source, env, for_signature):
     return target_name
 
 
+def _ldmodule_soversion(target, source, env, for_signature):
+    """Function to determine what to use for SOVERSION"""
+
+    if 'SOVERSION' in env:
+        return '.$SOVERSION'
+    elif 'LDMODULESOVERSION' in env:
+        ldmod_version = env.subst('$LDMODULESOVERSION')
+        # We use only the most significant digit of LDMODULEVERSION
+        return '.' + ldmod_version.split('.')[0]
+    else:
+        return ''
+
+
+def _ldmodule_soname(target, source, env, for_signature):
+    if 'SONAME' in env:
+        return '$SONAME'
+    else:
+        return "$LDMODULEPREFIX$_get_ldmodule_stem$_LDMODULESOVERSION${LDMODULESUFFIX}"
+
+
 def setup_loadable_module_logic(env):
     """
     Just the logic for loadable modules
@@ -285,15 +287,46 @@ def setup_loadable_module_logic(env):
     :param env:
     :return:
     """
-    SCons.Tool.createLoadableModuleBuilder(env)
-    env['LDMODULE'] = '$SHLINK'
+
+    createLoadableModuleBuilder(env)
+
+    env['_get_ldmodule_stem'] = _get_ldmodule_stem
+    env['_LDMODULESOVERSION'] = _ldmodule_soversion
+    env['_LDMODULESONAME'] = _ldmodule_soname
+
+    env['LDMODULENAME'] = '${LDMODULEPREFIX}$_get_ldmodule_stem${_LDMODULEVERSION}${_LDMODULESUFFIX}'
+
+    # This is the non versioned LDMODULE filename
+    # If LDMODULEVERSION is defined then this will symlink to $LDMODULENAME
+    env['LDMODULE_NOVERSION_SYMLINK'] = '${LDMODULEPREFIX}$_get_ldmodule_stem${LDMODULESUFFIX}'
+
+    # This is the sonamed file name
+    # If LDMODULEVERSION is defined then this will symlink to $LDMODULENAME
+    env['LDMODULE_SONAME_SYMLINK'] = '$_LDMODULESONAME'
+
+    env['_LDMODULEVERSION'] = "${LDMODULEVERSION and '.'+LDMODULEVERSION or ''}"
+
     env['LDMODULEEMITTER'] = [lib_emitter, ldmod_symlink_emitter]
+
     env['LDMODULEPREFIX'] = '$SHLIBPREFIX'
+    env['_LDMODULESUFFIX'] = '${_LDMODULEVERSION}${LDMODULESUFFIX}'
     env['LDMODULESUFFIX'] = '$SHLIBSUFFIX'
+
+
+    env['LDMODULELINK'] = '$SHLINK'
+
+
     env['LDMODULEFLAGS'] = '$SHLINKFLAGS'
-    env['LDMODULECOM'] = '$LDMODULE -o $TARGET $LDMODULEFLAGS $__LDMODULEVERSIONFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
+
+    env['LDMODULELINKCOM'] = '$LDMODULELINK -o $TARGET $LDMODULEFLAGS $__LDMODULEVERSIONFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
+
     env['LDMODULEVERSION'] = '$SHLIBVERSION'
     env['LDMODULENOVERSIONSYMLINKS'] = '$SHLIBNOVERSIONSYMLINKS'
+
+
+
+
+
 
 def generate(env):
     setup_shared_lib_logic(env)
@@ -301,8 +334,6 @@ def generate(env):
 
     env['SMARTLINK'] = smart_link
     env['LINK'] = "$SMARTLINK"
-
-
 
 
 def exists(env):

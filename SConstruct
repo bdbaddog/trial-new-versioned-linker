@@ -9,7 +9,7 @@ env = Environment(tools=['mylinker', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 # "-Wl,-compatibility_version,%s"
 
 
-to_subst = ['SHLIBNAME', 'SHLIB_SYMLINK1', 'SHLIB_SYMLINK2']
+to_subst = ['SHLIBNAME', 'SHLIB_SYMLINK1', 'SHLIB_SYMLINK2','LDMODULENAME']
 
 
 def eval_shlib_filenames(env):
@@ -37,10 +37,14 @@ eval_shlib_filenames(env2)
 
 
 env.SharedLibrary('a', 'a.c', SHLIBVERSION='1.2.3')
-env.SharedLibrary('a_soversion', 'a.c', SHLIBVERSION='1.2.3', SOVERSION='3')
-env.SharedLibrary('a_soname', 'a.c', SHLIBVERSION='1.2.3', SONAME='liba_soname.9.so')
+# env.SharedLibrary('a_soversion', 'a.c', SHLIBVERSION='1.2.3', SOVERSION='3')
+# env.SharedLibrary('a_soname', 'a.c', SHLIBVERSION='1.2.3', SONAME='liba_soname.9.so')
+# env.SharedLibrary('a_nosymlink', 'a.c', SHLIBVERSION='1.2.3', SHLIBNOVERSIONSYMLINKS=True)
+#
+# env.SharedLibrary('b', 'b.c')
 
-env.SharedLibrary('b', 'b.c')
+env.LoadableModule('loadable_a', 'a.c', LDMODULEVERSION='1.2.3')
+
 
 # env.Command('libabc.so', 'a.c', '@echo for TARGET:$TARGET SHLIBVERSION=$SHLIBVERSION SONAME=${SONAME}',
 #             # SOVERSION='1'

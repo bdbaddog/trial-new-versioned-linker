@@ -105,7 +105,8 @@ def createLoadableModuleBuilder(env):
         ld_module = env['BUILDERS']['LoadableModule']
     except KeyError:
         import SCons.Defaults
-        action_list = [LoadableModuleLinkAction,
+        action_list = [SCons.Defaults.SharedCheck,
+                       LoadableModuleLinkAction,
                        LoadableModuleSymlinksAction]
         ld_module = SCons.Builder.Builder(action=action_list,
                                           emitter="$LDMODULEEMITTER",
@@ -130,7 +131,8 @@ def createSharedLibBuilder(env):
         shared_lib = env['BUILDERS']['SharedLibrary']
     except KeyError:
         import SCons.Defaults
-        action_list = [ShLinkAction,
+        action_list = [SCons.Defaults.SharedCheck,
+                       ShLinkAction,
                        LibSymlinksAction]
         shared_lib = SCons.Builder.Builder(action=action_list,
                                            emitter="$SHLIBEMITTER",
@@ -138,7 +140,7 @@ def createSharedLibBuilder(env):
                                            suffix='$_SHLIBSUFFIX',
                                            target_scanner=ProgramScanner,
                                            src_suffix='$_SHOBJSUFFIX',
-                                           # src_builder='SharedObject'
+                                           src_builder='SharedObject'
                                            )
         env['BUILDERS']['SharedLibrary'] = shared_lib
 

@@ -4,7 +4,8 @@ So if SONAME, SOVERSION, etc are set but SHLIBVERSION is not, they will be ignor
 """
 
 import SCons.Action
-from SCons.Tool.linkCommon import CreateLibSymlinks, EmitLibSymlinks, StringizeLibSymlinks
+from SCons.Tool.linkCommon import CreateLibSymlinks, EmitLibSymlinks, StringizeLibSymlinks, smart_link
+
 # from SCons.Tool.linkCommon import smart_link, shlib_emitter, ldmod_emitter
 
 from SCons.Tool import ProgramScanner
@@ -186,8 +187,8 @@ def generate(env):
     env['SHLINKCOMSTR'] = '$SHLINKCOM'
     env['SHLINK'] = '$LINK'
 
-    # env['SMARTLINK'] = smart_link
-    env['LINK'] = "gcc"
+    env['SMARTLINK'] = smart_link
+    env['LINK'] = "$SMARTLINK"
 
 
 

@@ -1,4 +1,4 @@
-env = Environment(tools=['mylinker'], LIBNAME='MY_SHLIB_NAME')
+env = Environment(tools=['mylinker', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 
 # Syntax to bake soname into shared library for gnu linkers
 # -Wl,-soname,your_soname

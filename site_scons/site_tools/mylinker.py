@@ -5,6 +5,8 @@ So if SONAME, SOVERSION, etc are set but SHLIBVERSION is not, they will be ignor
 
 import SCons.Action
 from SCons.Tool.linkCommon import CreateLibSymlinks, EmitLibSymlinks, StringizeLibSymlinks
+# from SCons.Tool.linkCommon import smart_link, shlib_emitter, ldmod_emitter
+
 from SCons.Tool import ProgramScanner
 
 
@@ -175,8 +177,18 @@ def generate(env):
     env['_SHLIBUFFIX'] = '${_SHLIBVERSION}${SHLIBSUFFIX}'
     env['SHLIBSUFFIX'] = '.so'
 
-    env['SHLINKCOM'] = 'touch $TARGET'
-    env['SHLINKCOMSTR'] = 'touch $TARGET'
+    # env['SHLINKCOM'] = 'touch $TARGET'
+    # env['SHLINKCOMSTR'] = 'touch $TARGET'
+
+    env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared')
+
+    env['SHLINKCOM'] = '$SHLINK -o $TARGET $SHLINKFLAGS $__SHLIBVERSIONFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
+    env['SHLINKCOMSTR'] = '$SHLINKCOM'
+    env['SHLINK'] = '$LINK'
+
+    # env['SMARTLINK'] = smart_link
+    env['LINK'] = "gcc"
+
 
 
 def exists(env):

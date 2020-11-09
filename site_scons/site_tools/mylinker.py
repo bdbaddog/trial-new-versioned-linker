@@ -261,8 +261,8 @@ def _ldmodule_soversion(target, source, env, for_signature):
 
     if 'SOVERSION' in env:
         return '.$SOVERSION'
-    elif 'LDMODULESOVERSION' in env:
-        ldmod_version = env.subst('$LDMODULESOVERSION')
+    elif 'LDMODULEVERSION' in env:
+        ldmod_version = env.subst('$LDMODULEVERSION')
         # We use only the most significant digit of LDMODULEVERSION
         return '.' + ldmod_version.split('.')[0]
     else:
@@ -312,20 +312,15 @@ def setup_loadable_module_logic(env):
     env['_LDMODULESUFFIX'] = '${_LDMODULEVERSION}${LDMODULESUFFIX}'
     env['LDMODULESUFFIX'] = '$SHLIBSUFFIX'
 
-
     env['LDMODULELINK'] = '$SHLINK'
-
 
     env['LDMODULEFLAGS'] = '$SHLINKFLAGS'
 
-    env['LDMODULELINKCOM'] = '$LDMODULELINK -o $TARGET $LDMODULEFLAGS $__LDMODULEVERSIONFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
+    env['LDMODULELINKCOM'] = '$LDMODULELINK -o $TARGET $LDMODULEFLAGS $__LDMODULEVERSIONFLAGS $__RPATH $SOURCES ' \
+                             '$_LIBDIRFLAGS $_LIBFLAGS '
 
     env['LDMODULEVERSION'] = '$SHLIBVERSION'
     env['LDMODULENOVERSIONSYMLINKS'] = '$SHLIBNOVERSIONSYMLINKS'
-
-
-
-
 
 
 def generate(env):

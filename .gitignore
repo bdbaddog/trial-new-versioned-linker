@@ -134,3 +134,4 @@ dmypy.json
 
 # C extensions
 *.so
+*.os

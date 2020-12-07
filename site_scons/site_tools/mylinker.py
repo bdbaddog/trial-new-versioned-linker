@@ -70,7 +70,11 @@ def shlib_symlink_emitter(target, source, env, **kw):
         shlib_soname_symlink = env.subst('$%s_SONAME_SYMLINK' % var_prefix, target=target, source=source)
         shlib_noversion_symlink = env.subst('$%s_NOVERSION_SYMLINK' % var_prefix, target=target, source=source)
 
-        print("SONAMESYM:%s  SO_NOVERSION_SYM:%s"%(shlib_soname_symlink, shlib_noversion_symlink))
+        if verbose:
+            print("shlib_soname_symlink    :%s"%shlib_soname_symlink)
+            print("shlib_noversion_symlink :%s"%shlib_noversion_symlink)
+            print("libnode                 :%s"%libnode)
+
         symlinks = [(env.File(shlib_soname_symlink), libnode),
                     (env.File(shlib_noversion_symlink), libnode)]
 
@@ -164,7 +168,7 @@ def _soname(target, source, env, for_signature):
     if 'SONAME' in env:
         return '$SONAME'
     else:
-        return "$SHLIBPREFIX$_get_shlib_stem$_SOVERSION${SHLIBSUFFIX}"
+        return "$SHLIBPREFIX$_get_shlib_stem$_SHLIBSOVERSION${SHLIBSUFFIX}"
 
 
 def _get_shlib_stem(target, source, env, for_signature):
@@ -198,10 +202,10 @@ def setup_shared_lib_logic(env):
     createSharedLibBuilder(env)
 
     env['_get_shlib_stem'] = _get_shlib_stem
-    env['_SOVERSION'] = _soversion
-    env['_SONAME'] = _soname
+    env['_SHLIBSOVERSION'] = _soversion
+    env['_SHLIBSONAME'] = _soname
 
-    env['SHLIBNAME'] = '${SHLIBPREFIX}$_get_shlib_stem${_SHLIBVERSION}${_SHLIBSUFFIX}'
+    env['SHLIBNAME'] = '${SHLIBPREFIX}$_get_shlib_stem${_SHLIBSUFFIX}'
 
     # This is the non versioned shlib filename
     # If SHLIBVERSION is defined then this will symlink to $SHLIBNAME
@@ -209,12 +213,12 @@ def setup_shared_lib_logic(env):
 
     # This is the sonamed file name
     # If SHLIBVERSION is defined then this will symlink to $SHLIBNAME
-    env['SHLIB_SONAME_SYMLINK'] = '$_SONAME'
+    env['SHLIB_SONAME_SYMLINK'] = '$_SHLIBSONAME'
 
     # Note this is gnu style
-    env['SHLIBSONAMEFLAGS'] = '-Wl,-soname=$_SONAME'
+    env['SHLIBSONAMEFLAGS'] = '-Wl,-soname=$_SHLIBSONAME'
     env['_SHLIBVERSION'] = "${SHLIBVERSION and '.'+SHLIBVERSION or ''}"
-
+    env['_SHLIBVERSIONFLAGS'] = '$SHLIBVERSIONFLAGS -Wl,-soname=$_SHLIBSONAME'
 
     env['SHLIBEMITTER'] = [lib_emitter, shlib_symlink_emitter]
 
@@ -296,7 +300,7 @@ def setup_loadable_module_logic(env):
     env['_LDMODULESOVERSION'] = _ldmodule_soversion
     env['_LDMODULESONAME'] = _ldmodule_soname
 
-    env['LDMODULENAME'] = '${LDMODULEPREFIX}$_get_ldmodule_stem${_LDMODULEVERSION}${_LDMODULESUFFIX}'
+    env['LDMODULENAME'] = '${LDMODULEPREFIX}$_get_ldmodule_stem${_LDMODULESUFFIX}'
 
     # This is the non versioned LDMODULE filename
     # If LDMODULEVERSION is defined then this will symlink to $LDMODULENAME
@@ -307,6 +311,8 @@ def setup_loadable_module_logic(env):
     env['LDMODULE_SONAME_SYMLINK'] = '$_LDMODULESONAME'
 
     env['_LDMODULEVERSION'] = "${LDMODULEVERSION and '.'+LDMODULEVERSION or ''}"
+    env['_LDMODULEVERSIONFLAGS'] = '$LDMODULEVERSIONFLAGS -Wl,-soname=$_LDMODULESONAME'
+    # env['_LDMODULESONAME'] = '${LdModSonameGenerator(__env__,TARGET)}'
 
     env['LDMODULEEMITTER'] = [lib_emitter, ldmod_symlink_emitter]
 

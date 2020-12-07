@@ -1,0 +1,21 @@
+Import('env')
+
+shared_obj = env.SharedObject('a.c')
+env.SharedLibrary('a', shared_obj, SHLIBVERSION='1.2.3')
+env.SharedLibrary('a_soversion', shared_obj, SHLIBVERSION='1.2.3', SOVERSION='3')
+env.SharedLibrary('a_soname', shared_obj, SHLIBVERSION='1.2.3', SONAME='liba_soname.9.so')
+env.SharedLibrary('a_nosymlink', shared_obj, SHLIBVERSION='1.2.3', SHLIBNOVERSIONSYMLINKS=True)
+
+env.SharedLibrary('b', 'b.c')
+
+env.LoadableModule('loadable_a', shared_obj, LDMODULEVERSION='1.2.3')
+env.LoadableModule('loadable_a_soversion', shared_obj, LDMODULEVERSION='1.2.3', SOVERSION='4')
+env.LoadableModule('loadable_a_soname', shared_obj, LDMODULEVERSION='1.2.3', SONAME='libloadable_a_soname.99.so')
+env.LoadableModule('loadable_a_nosymlink', shared_obj, LDMODULEVERSION='3.4.5', LDMODULENOVERSIONSYMLINKS=True)
+
+if env.get('APPLE_TESTS', False):
+    # Now do apple specific tests
+    env.SharedLibrary('a_compat_version', shared_obj, APPLELINK_COMPATIBILITY_VERSION='1.2.3')
+    env.SharedLibrary('a_compat_noversion', shared_obj, SHLIBVERSION='1.2.3', APPLELINK_NO_COMPATIBILITY_VERSION=True)
+    # env.SharedLibrary('a_soname', shared_obj, SHLIBVERSION='1.2.3', SONAME='liba_soname.9.so')
+    # env.SharedLibrary('a_nosymlink', shared_obj, SHLIBVERSION='1.2.3', SHLIBNOVERSIONSYMLINKS=True)

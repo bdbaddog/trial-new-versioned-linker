@@ -21,15 +21,17 @@ def LibSymlinksStrFun(target, source, env, *args):
     for tgt in target:
         symlinks = getattr(getattr(tgt, 'attributes', None), 'shliblinks', None)
         if symlinks:
-            if cmd is None: cmd = ""
-            if cmd: cmd += "\n"
-            cmd += "Create symlinks for: %r" % tgt.get_path()
+            if cmd is None:
+                cmd = ""
+            if cmd:
+                cmd += "\n"
+            cmd += "Create symlinks for: %r\n\t" % tgt.get_path()
             try:
-                linkstr = ', '.join(["%r->%r" % (k, v) for k, v in StringizeLibSymlinks(symlinks)])
+                linkstr = '\n\t'.join(["%r->%r" % (k, v) for k, v in StringizeLibSymlinks(symlinks)])
             except (KeyError, ValueError):
                 pass
             else:
-                cmd += ": %s" % linkstr
+                cmd += "%s" % linkstr
     return cmd
 
 
@@ -38,7 +40,7 @@ LibSymlinksAction = SCons.Action.Action(LibSymlinksActionFunction, LibSymlinksSt
 
 
 def lib_emitter(target, source, env, **kw):
-    verbose = True
+    verbose = False
     if verbose:
         print("_lib_emitter: target[0]={!r}".format(target[0].get_path()))
     for tgt in target:
@@ -50,7 +52,7 @@ def lib_emitter(target, source, env, **kw):
 
 
 def shlib_symlink_emitter(target, source, env, **kw):
-    verbose = True
+    verbose = False
 
     if 'variable_prefix' in kw:
         var_prefix = kw['variable_prefix']

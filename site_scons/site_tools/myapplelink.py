@@ -111,6 +111,7 @@ def _applelib_compatVersionFromSoVersion(source, target, env, for_signature):
 
     return "-Wl,-compatibility_version,%s" % version_string
 
+
 def generate(env):
     mylinker.generate(env)
 

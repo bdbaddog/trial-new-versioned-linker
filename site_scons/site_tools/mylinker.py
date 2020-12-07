@@ -5,7 +5,7 @@ So if SONAME, SOVERSION, etc are set but SHLIBVERSION is not, they will be ignor
 
 import SCons.Action
 from SCons.Tool.linkCommon import CreateLibSymlinks, EmitLibSymlinks, StringizeLibSymlinks, smart_link
-from SCons.Tool import ProgramScanner
+from SCons.Tool import ProgramScanner, createProgBuilder
 
 
 def LibSymlinksActionFunction(target, source, env):
@@ -223,7 +223,8 @@ def setup_shared_lib_logic(env):
     env['SHLIBEMITTER'] = [lib_emitter, shlib_symlink_emitter]
 
     env['SHLIBPREFIX'] = 'lib'
-    env['_SHLIBSUFFIX'] = '${_SHLIBVERSION}${SHLIBSUFFIX}'
+    env['_SHLIBSUFFIX'] = '${SHLIBSUFFIX}${_SHLIBVERSION}'
+
     env['SHLIBSUFFIX'] = '.so'
 
     # env['SHLINKCOM'] = 'touch $TARGET'
@@ -332,11 +333,21 @@ def setup_loadable_module_logic(env):
 
 
 def generate(env):
+    createProgBuilder(env)
     setup_shared_lib_logic(env)
     setup_loadable_module_logic(env)
 
     env['SMARTLINK'] = smart_link
     env['LINK'] = "$SMARTLINK"
+    env['LINKFLAGS'] = SCons.Util.CLVar('')
+
+    # __RPATH is only set to something ($_RPATH typically) on platforms that support it.
+    env['LINKCOM'] = '$LINK -o $TARGET $LINKFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
+    env['LIBDIRPREFIX'] = '-L'
+    env['LIBDIRSUFFIX'] = ''
+    env['_LIBFLAGS'] = '${_stripixes(LIBLINKPREFIX, LIBS, LIBLINKSUFFIX, LIBPREFIXES, LIBSUFFIXES, __env__)}'
+    env['LIBLINKPREFIX'] = '-l'
+    env['LIBLINKSUFFIX'] = ''
 
 
 def exists(env):

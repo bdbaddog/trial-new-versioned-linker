@@ -2,6 +2,10 @@ env = Environment(tools=['mylinker', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 apple_env = Environment(tools=['myapplelink', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 apple_env['APPLE_TESTS'] = True
 
+cyg_env = Environment(tools=['cyglink', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
+cyg_env['CYGWIN_TESTS'] = True
+
+
 # Syntax to bake soname into shared library for gnu linkers
 # -Wl,-soname,your_soname
 
@@ -18,3 +22,4 @@ apple_env['APPLE_TESTS'] = True
 
 SConscript('src/SConscript', exports={'env': env}, variant_dir='build/vanilla')
 SConscript('src/SConscript', exports={'env': apple_env}, variant_dir='build/apple')
+SConscript('src/SConscript', exports={'env': cyg_env}, variant_dir='build/cygwin')

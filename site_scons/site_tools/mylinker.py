@@ -73,9 +73,9 @@ def shlib_symlink_emitter(target, source, env, **kw):
         shlib_noversion_symlink = env.subst('$%s_NOVERSION_SYMLINK' % var_prefix, target=target, source=source)
 
         if verbose:
-            print("shlib_soname_symlink    :%s"%shlib_soname_symlink)
-            print("shlib_noversion_symlink :%s"%shlib_noversion_symlink)
-            print("libnode                 :%s"%libnode)
+            print("shlib_soname_symlink    :%s" % shlib_soname_symlink)
+            print("shlib_noversion_symlink :%s" % shlib_noversion_symlink)
+            print("libnode                 :%s" % libnode)
 
         symlinks = [(env.File(shlib_soname_symlink), libnode),
                     (env.File(shlib_noversion_symlink), libnode)]
@@ -334,6 +334,23 @@ def setup_loadable_module_logic(env):
     env['LDMODULENOVERSIONSYMLINKS'] = '$SHLIBNOVERSIONSYMLINKS'
 
 
+def __lib_either_version_flag(env, version_var1, version_var2, flags_var):
+    """
+    if $version_var1 or $version_var2 is not empty, returns env[flags_var], otherwise returns None
+    :param env:
+    :param version_var1:
+    :param version_var2:
+    :param flags_var:
+    :return:
+    """
+    try:
+        if env.subst('$' + version_var1) or env.subst('$' + version_var2):
+            return env[flags_var]
+    except KeyError:
+        pass
+    return None
+
+
 def generate(env):
     createProgBuilder(env)
     setup_shared_lib_logic(env)
@@ -350,6 +367,8 @@ def generate(env):
     env['_LIBFLAGS'] = '${_stripixes(LIBLINKPREFIX, LIBS, LIBLINKSUFFIX, LIBPREFIXES, LIBSUFFIXES, __env__)}'
     env['LIBLINKPREFIX'] = '-l'
     env['LIBLINKSUFFIX'] = ''
+
+    env['__lib_either_version_flag'] = __lib_either_version_flag
 
 
 def exists(env):

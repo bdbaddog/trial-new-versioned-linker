@@ -47,6 +47,7 @@ env.SharedLibrary('b', 'b.c')
 env.LoadableModule('loadable_a', shared_obj, LDMODULEVERSION='1.2.3')
 env.LoadableModule('loadable_a_soversion', shared_obj, LDMODULEVERSION='1.2.3', SOVERSION='4')
 env.LoadableModule('loadable_a_soname', shared_obj, LDMODULEVERSION='1.2.3', SONAME='libloadable_a_soname.99.so')
+env.LoadableModule('loadable_a_nosymlink', shared_obj, LDMODULEVERSION='3.4.5', LDMODULENOVERSIONSYMLINKS=True)
 
 
 

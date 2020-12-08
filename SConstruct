@@ -2,7 +2,7 @@ env = Environment(tools=['mylinker', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 apple_env = Environment(tools=['myapplelink', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 apple_env['APPLE_TESTS'] = True
 
-cyg_env = Environment(tools=['cyglink', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
+cyg_env = Environment(tools=['mycyglink', 'g++', 'gcc'], LIBNAME='MY_SHLIB_NAME')
 cyg_env['CYGWIN_TESTS'] = True
 
 

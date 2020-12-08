@@ -227,11 +227,6 @@ def setup_shared_lib_logic(env):
     env['SHLIBPREFIX'] = 'lib'
     env['_SHLIBSUFFIX'] = '${SHLIBSUFFIX}${_SHLIBVERSION}'
 
-    # env['SHLIBSUFFIX'] = '.so'
-
-    # env['SHLINKCOM'] = 'touch $TARGET'
-    # env['SHLINKCOMSTR'] = 'touch $TARGET'
-
     env['SHLINKFLAGS'] = SCons.Util.CLVar('$LINKFLAGS -shared')
 
     env['SHLINKCOM'] = '$SHLINK -o $TARGET $SHLINKFLAGS $__SHLIBVERSIONFLAGS $__RPATH $SOURCES $_LIBDIRFLAGS $_LIBFLAGS'

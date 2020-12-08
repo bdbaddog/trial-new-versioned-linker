@@ -31,5 +31,11 @@ if env.get('CYGWIN_TESTS', False):
     # for implib libxyz-1-2-3.dll.a
     # NOTE: the 'lib' is on the implib, but NOT on the shared library
     # NOTE: Symlinks only for imp lib and not for dll.
+    # so: libxyz.dll.a -> libxyz-1-2-3.dll.a
+    #     and no other.
     env.SharedLibrary('noversion', shared_obj)
     env.SharedLibrary('a', shared_obj, SHLIBVERSION='1.2.3')
+    # Need
+    # gcc -o build/cygwin/cyga-1-2-3.dll -Wl,-no-undefined -shared -Wl,--out-implib=build/cygwin/liba-1-2-3.dll.a -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--whole-archive build/cygwin/a.os -Wl,--no-whole-archive
+    # vs
+    # gcc -o build/cygwin/cyga.dll.1.2.3 -Wl,-no-undefined -shared   build/cygwin/a.os $(  $)

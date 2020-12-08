@@ -64,8 +64,14 @@ def cyglink_shlib_symlink_emitter(target, source, env, **kw):
     else:
         var_prefix = 'SHLIB'
 
-    do_symlinks = env.subst('$%sNOVERSIONSYMLINKS' % var_prefix)
-    if do_symlinks in ['1', 'True', 'true', True]:
+    no_import_lib = env.get('no_import_lib',False)
+    if no_import_lib in ['1', 'True', 'true', True]:
+        if verbose:
+            print("cyglink_shlib_symlink_emitter: no_import_lib=%s"%no_import_lib)
+        return target, source
+
+    no_symlinks = env.subst('$%sNOVERSIONSYMLINKS' % var_prefix)
+    if no_symlinks in ['1', 'True', 'true', True]:
         return target, source
 
     shlibversion = env.subst('$%sVERSION' % var_prefix)
@@ -125,6 +131,21 @@ def cyglink_ldmodule_version(target, source, env, for_signature):
     return "." + version
 
 
+def _implib_pre_flags(target, source, env, for_signature):
+    no_import_lib = env.get('no_import_lib',False)
+    if no_import_lib in ['1', 'True', 'true', True]:
+        return ''
+    else:
+        return '-Wl,--out-implib=${TARGETS[1]} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--whole-archive'
+
+
+def _implib_post_flags(target, source, env, for_signature):
+    no_import_lib = env.get('no_import_lib',False)
+    if no_import_lib in ['1', 'True', 'true', True]:
+        return ''
+    else:
+        return '-Wl,--no-whole-archive'
+
 def generate(env):
     mylinker.generate(env)
     env['LINKFLAGS'] = CLVar('-Wl,-no-undefined')
@@ -140,11 +161,12 @@ def generate(env):
     env['_SHLIBVERSIONFLAGS'] = '$SHLIBVERSIONFLAGS'
     env['_LDMODULEVERSIONFLAGS'] = '$LDMODULEVERSIONFLAGS'
 
-    # Remove variables set by default initialization which aren't needed/used by cyglink
-    # these variables were set by gnulink but are not used in cyglink
-    for rv in ['_SHLIBSONAME', '_LDMODULESONAME']:
-        if rv in env:
-            del env[rv]
+    env['_IMPLIB_PRE_SOURCES'] = _implib_pre_flags
+    env['_IMPLIB_POST_SOURCES'] = _implib_post_flags
+    env['SHLINKCOM'] = '$SHLINK -o $TARGET $SHLINKFLAGS $__SHLIBVERSIONFLAGS $__RPATH '\
+                       '$_IMPLIB_PRE_SOURCES $SOURCES  $_IMPLIB_POST_SOURCES $_LIBDIRFLAGS $_LIBFLAGS'
+    env['LDMODULECOM'] = '$LDMODULE -o $TARGET $SHLINKFLAGS $__LDMODULEVERSIONFLAGS $__RPATH '\
+                         '$_IMPLIB_PRE_SOURCES $SOURCES $_IMPLIB_POST_SOURCES $_LIBDIRFLAGS  $_LIBFLAGS'
 
     # Overwrite emitters. Cyglink does things differently when creating symlinks
     env['SHLIBEMITTER'] = [cyglink_lib_emitter, cyglink_shlib_symlink_emitter]
@@ -167,6 +189,11 @@ def generate(env):
     env['_LDMODULESUFFIX'] = '${_cyglink_ldmodule_version}${LDMODULESUFFIX}'
     env['_LDMODULE_IMPLIBSUFFIX'] = '${_cyglink_ldmodule_version}${IMPLIBSUFFIX}'
 
+    # Remove variables set by default initialization which aren't needed/used by cyglink
+    # these variables were set by gnulink but are not used in cyglink
+    for rv in ['_SHLIBSONAME', '_LDMODULESONAME']:
+        if rv in env:
+            del env[rv]
 
 
 def exists(env):

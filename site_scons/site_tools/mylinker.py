@@ -234,7 +234,7 @@ def setup_shared_lib_logic(env):
     env['SHLINK'] = '$LINK'
 
 
-LoadableModuleLinkAction = SCons.Action.Action("$LDMODULELINKCOM", "$LDMODULELINKCOMSTR")
+LoadableModuleLinkAction = SCons.Action.Action("$LDMODULECOM", "$LDMODULECOMSTR")
 LoadableModuleSymlinksAction = SCons.Action.Action(LibSymlinksActionFunction, LibSymlinksStrFun)
 
 
@@ -317,11 +317,11 @@ def setup_loadable_module_logic(env):
     env['_LDMODULESUFFIX'] = '${_LDMODULEVERSION}${LDMODULESUFFIX}'
     env['LDMODULESUFFIX'] = '$SHLIBSUFFIX'
 
-    env['LDMODULELINK'] = '$SHLINK'
+    env['LDMODULE'] = '$SHLINK'
 
     env['LDMODULEFLAGS'] = '$SHLINKFLAGS'
 
-    env['LDMODULELINKCOM'] = '$LDMODULELINK -o $TARGET $LDMODULEFLAGS $__LDMODULEVERSIONFLAGS $__RPATH $SOURCES ' \
+    env['LDMODULECOM'] = '$LDMODULE -o $TARGET $LDMODULEFLAGS $__LDMODULEVERSIONFLAGS $__RPATH $SOURCES ' \
                              '$_LIBDIRFLAGS $_LIBFLAGS '
 
     env['LDMODULEVERSION'] = '$SHLIBVERSION'

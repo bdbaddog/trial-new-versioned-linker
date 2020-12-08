@@ -310,7 +310,6 @@ def setup_loadable_module_logic(env):
 
     env['_LDMODULEVERSION'] = "${LDMODULEVERSION and '.'+LDMODULEVERSION or ''}"
     env['_LDMODULEVERSIONFLAGS'] = '$LDMODULEVERSIONFLAGS -Wl,-soname=$_LDMODULESONAME'
-    # env['_LDMODULESONAME'] = '${LdModSonameGenerator(__env__,TARGET)}'
 
     env['LDMODULEEMITTER'] = [lib_emitter, ldmod_symlink_emitter]
 

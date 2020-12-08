@@ -3,14 +3,14 @@ Import('env')
 shared_obj = env.SharedObject('a.c')
 # env.SharedLibrary('noversion', shared_obj)
 #
-# env.SharedLibrary('a', shared_obj, SHLIBVERSION='1.2.3')
+env.SharedLibrary('a', shared_obj, SHLIBVERSION='1.2.3')
 # env.SharedLibrary('a_soversion', shared_obj, SHLIBVERSION='1.2.3', SOVERSION='3')
 # env.SharedLibrary('a_soname', shared_obj, SHLIBVERSION='1.2.3', SONAME='liba_soname.9.so')
 # env.SharedLibrary('a_nosymlink', shared_obj, SHLIBVERSION='1.2.3', SHLIBNOVERSIONSYMLINKS=True)
 #
 # env.SharedLibrary('b', 'b.c')
-#
-# env.LoadableModule('loadable_a', shared_obj, LDMODULEVERSION='1.2.3')
+
+env.LoadableModule('loadable_a', shared_obj, LDMODULEVERSION='1.2.3')
 # env.LoadableModule('loadable_a_soversion', shared_obj, LDMODULEVERSION='1.2.3', SOVERSION='4')
 # env.LoadableModule('loadable_a_soname', shared_obj, LDMODULEVERSION='1.2.3', SONAME='libloadable_a_soname.99.so')
 # env.LoadableModule('loadable_a_nosymlink', shared_obj, LDMODULEVERSION='3.4.5', LDMODULENOVERSIONSYMLINKS=True)
@@ -33,8 +33,9 @@ if env.get('CYGWIN_TESTS', False):
     # NOTE: Symlinks only for imp lib and not for dll.
     # so: libxyz.dll.a -> libxyz-1-2-3.dll.a
     #     and no other.
-    env.SharedLibrary('noversion', shared_obj)
-    env.SharedLibrary('a', shared_obj, SHLIBVERSION='1.2.3')
+    # env.SharedLibrary('noversion', shared_obj)
+    # env.SharedLibrary('shared_lib_version', shared_obj, SHLIBVERSION='1.2.3')
+    pass
     # Need
     # gcc -o build/cygwin/cyga-1-2-3.dll -Wl,-no-undefined -shared -Wl,--out-implib=build/cygwin/liba-1-2-3.dll.a -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--whole-archive build/cygwin/a.os -Wl,--no-whole-archive
     # vs
